@@ -1,0 +1,48 @@
+from pulp import LpMaximize, LpProblem, LpVariable, value
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.integrate as spi
+
+model = LpProblem("Production", LpMaximize)
+
+lemonade = LpVariable("Lemonade", lowBound=0, cat="Integer")
+juice = LpVariable("FruitJuice", lowBound=0, cat="Integer")
+
+model += lemonade + juice
+model += 2 * lemonade + juice <= 100
+model += lemonade <= 50
+model += lemonade <= 30
+model += 2 * juice <= 40
+
+model.solve()
+
+print(value(lemonade))
+print(value(juice))
+print(value(model.objective))
+
+def f(x):
+    return x ** 2
+
+a = 0
+b = 2
+N = 1_000_000
+
+x = np.random.uniform(a, b, N)
+mc_result = (b - a) * np.mean(f(x))
+quad_result, error = spi.quad(f, a, b)
+
+print(mc_result)
+print(quad_result)
+print(abs(mc_result - quad_result))
+
+x_plot = np.linspace(-0.5, 2.5, 400)
+y_plot = f(x_plot)
+
+plt.plot(x_plot, y_plot, 'r', linewidth=2)
+ix = np.linspace(a, b)
+iy = f(ix)
+plt.fill_between(ix, iy, alpha=0.3)
+plt.axvline(x=a, linestyle='--')
+plt.axvline(x=b, linestyle='--')
+plt.grid()
+plt.show()
